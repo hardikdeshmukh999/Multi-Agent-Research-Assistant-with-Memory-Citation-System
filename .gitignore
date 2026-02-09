@@ -1,0 +1,20 @@
+# Secrets and Credentials
+.env
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local data
+research_db/
+
+# OS specific
+.DS_Store
+Thumbs.db

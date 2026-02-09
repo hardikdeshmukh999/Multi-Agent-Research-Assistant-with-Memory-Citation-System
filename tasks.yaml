@@ -1,0 +1,27 @@
+# tasks.yaml
+research_task:
+  description: >
+    Search for papers related to {topic}. Use the local memory first, 
+    then use the OpenAlex tool if needed.
+  expected_output: >
+    A list of at least 5 relevant paper titles and their publication years.
+  agent: librarian
+
+review_task:
+  description: >
+    Review the list provided by the librarian. Check for relevance to {topic}.
+  expected_output: >
+    A filtered list of papers that pass the quality check.
+  agent: critic
+
+synthesis_task:
+  description: >
+    Take the filtered list of papers and write a 3-section research report.
+    You MUST include a 'References' section at the bottom.
+  expected_output: >
+    A professional Markdown report with:
+    1. Executive Summary briefly summarizing the report and the key findings.
+    2. suggest direct answer to the topic in bullets points briefly.
+    3. References (List of original papers titles, authors, and publication years with their clickable Links) tabular format.
+    4. Comparison of the papers with the topic, and how much they are related to the topic in tabular format.
+  agent: scribe
