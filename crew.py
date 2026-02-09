@@ -65,13 +65,14 @@ synthesis_task = Task(
 )
 
 # --- CREW ---
+# Change from Process.sequential to Process.hierarchical
 research_crew = Crew(
     agents=[librarian, critic, scribe],
     tasks=[research_task, review_task, synthesis_task],
-    process=Process.sequential,
+    process=Process.hierarchical, # <--- The agent now manages its own hops
+    manager_llm=smart_llm,        # GPT-4o acts as the "Project Manager"
     verbose=True
 )
-
 def run_crew(topic):
     print(f"🚀 Starting the '{topic}' Research Crew...")
     result = research_crew.kickoff(inputs={'topic': topic})
