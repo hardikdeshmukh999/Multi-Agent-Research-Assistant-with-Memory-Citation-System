@@ -1,25 +1,26 @@
-# Physics-Involved Neural Networks: A Research Report
+# Research Report: Optimization Algorithms in WBAN and Fog Computing
 
 ## Executive Summary
-This report provides an analysis of physics-informed neural networks (PINNs) and their application in solving complex physical dynamics problems. Two recent studies were examined to understand how these networks integrate physical laws into the learning process for improved accuracy and efficiency. The first study focuses on friction-involved nonsmooth dynamics, and the second explores variance-involved PINNs for partial differential equations (PDEs). The key findings emphasize the ability of PINNs to enhance predictive capabilities in complex physical systems through the inclusion of physical laws in the modeling process.
 
-## Suggested Direct Answers
-- Physics-informed neural networks (PINNs) leverage physical laws to optimize neural network predictions for complex dynamic systems.
-- Applying PINNs to nonsmooth dynamics with friction leads to more accurate simulation results in physical systems involving discontinuities.
-- Variance-involved PINNs offer efficient and precise solutions to complex PDEs by accounting for variances inherent in the data, enhancing computational performance.
+This report examines the use of optimization algorithms, specifically the Greedy Spider Monkey Algorithm, in enhancing system reliability and resource management. Two studies are reviewed: one focuses on improving the reliability of IEEE 802.15.4 Wireless Body Area Networks (WBAN), and the other on resource management in fog computing environments. The key findings illustrate the effectiveness of using Greedy Spider Monkey Optimization techniques in both contexts, providing improvements in network reliability and efficient resource allocation.
+
+## Key Findings
+
+- **Improvement in WBAN Reliability**: The use of the Greedy Spider Monkey Algorithm significantly enhances the reliability of IEEE 802.15.4 WBANs, ensuring better performance and data transmission efficiency.
+- **Efficient Resource Management in Fog Computing**: Implementing greedy and semi-greedy methods optimizes resource management in fog computing, leading to improved system performance and resource utilization.
 
 ## References
 
-| Title                                                                                               | Authors      | Year | Link                                                |
-|-----------------------------------------------------------------------------------------------------|--------------|------|-----------------------------------------------------|
-| Physics-informed neural networks for friction-involved nonsmooth dynamics problems                  | Not Provided | 2024 | [10.1007/s11071-024-09350-z](https://doi.org/10.1007/s11071-024-09350-z) |
-| VI-PINNs: Variance-involved physics-informed neural networks for fast and accurate prediction of partial differential equations | Not Provided | 2025 | [10.1016/j.neucom.2025.129360](https://doi.org/10.1016/j.neucom.2025.129360) |
+| Title                                                                                     | Authors             | Year | Link                                                                                 |
+|-------------------------------------------------------------------------------------------|---------------------|------|--------------------------------------------------------------------------------------|
+| Enhancement in Reliability of IEEE 802.15.4 WBAN Using Greedy Spider Monkey Algorithm     | Umashankar Pandey   | 2024 | [Link](https://doi.org/10.1007/s44227-024-00053-w)                                   |
+| Resource Management in Fog Computing Using Greedy and Semi-Greedy Spider Monkey Optimization | Shahid Sultan Hajam | 2023 | [Link](https://doi.org/10.1007/s00500-023-09123-7)                                   |
 
-## Comparison of the Papers with the Topic
+## Comparison of the Papers
 
-| Title                                                                                               | Relevance to Physics-Involved Neural Networks         | Commentary                                                                                                               |
-|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| Physics-informed neural networks for friction-involved nonsmooth dynamics problems                  | High                                                  | Directly examines the application of PINNs in complex dynamics with friction, enhancing real-world physical simulations.  |
-| VI-PINNs: Variance-involved physics-informed neural networks for fast and accurate prediction of partial differential equations | High                                                  | Focuses on improving the speed and accuracy of solving PDEs using variance-involved PINNs, showing significant advancements in computational efficiency. |
+| Paper Title                                                                                   | Related to Topic                                                                        | Comparison                                                                                                             |
+|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| Enhancement in Reliability of IEEE 802.15.4 WBAN Using Greedy Spider Monkey Algorithm         | Focuses on enhancing network reliability through optimization.                           | Demonstrates the effectiveness of optimization algorithms in improving reliability and performance of WBAN systems.     |
+| Resource Management in Fog Computing Using Greedy and Semi-Greedy Spider Monkey Optimization  | Addresses efficient resource management using optimization algorithms.                   | Shows how greedy optimization techniques can lead to better resource management in fog computing environments.          |
 
-This compilation highlights the forefront of integrating physics into neural network frameworks, showcasing the potential of these methodologies to revolutionize the modeling of complex physical phenomena. The studies demonstrate how the infusion of physical laws into neural networks can reduce computation times while maintaining, or even increasing, predictive accuracy.
+The findings from these papers provide compelling evidence for the effectiveness of Greedy Spider Monkey Optimization methods. They highlight the potential benefits in both increasing the reliability of wireless networks and optimizing resource management in fog computing settings.

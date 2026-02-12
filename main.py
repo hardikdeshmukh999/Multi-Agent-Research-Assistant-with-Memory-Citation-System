@@ -1,3 +1,4 @@
+#main.py
 import json
 import re
 from dotenv import load_dotenv
@@ -57,39 +58,64 @@ def parse_cached_papers(mem_results):
             )
     return papers
 
-
 def run_critic(user_topic, papers):
-    if not papers:
-        return []
+    """
+    Enhanced critic with scoring rubric and detailed feedback.
+    Returns: {
+        "approved": [...],
+        "rejected": [...],
+        "stats": {...}
+    }
+    """
+    system = """You are a peer reviewer. Score each paper 0-10:
+    - Methodology: 0-3
+    - Recency: 0-2  
+    - Citations: 0-2
+    - Venue: 0-2
+    - Relevance: 0-1
+    
+    Accept if ≥7. Return JSON with approved, rejected, and stats."""
+    
+    user = f"""Topic: {user_topic}
+Papers: {json.dumps(papers)}
 
-    system = (
-        "You are a strict peer reviewer. Filter papers by relevance, recency, and "
-        "signal quality. Keep only the best candidates."
-    )
-    user = (
-        f"Topic: {user_topic}\n"
-        "Return JSON with keys: approved (list of objects with id,title,year) and "
-        "reason (string). Use only papers from the input list.\n\n"
-        f"Input papers:\n{json.dumps(papers, ensure_ascii=True)}"
-    )
+For EACH paper, provide:
+{{
+  "paper_id": "...",
+  "score": 8.5,
+  "rubric": {{"methodology": 3, "recency": 2, ...}},
+  "decision": "ACCEPT" or "REJECT",
+  "reasoning": "Step-by-step explanation"
+}}
+
+Then summarize:
+{{
+  "approved": [papers with score ≥7],
+  "rejected": [papers with score <7],
+  "stats": {{
+    "total_reviewed": N,
+    "acceptance_rate": "X%",
+    "avg_quality_accepted": Y
+  }}
+}}"""
+    
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": system},
-            {"role": "user", "content": user},
+            {"role": "user", "content": user}
         ],
         temperature=0,
-        response_format={"type": "json_object"},
+        response_format={"type": "json_object"}
     )
-    content = response.choices[0].message.content or "{}"
-    try:
-        data = json.loads(content)
-        approved = data.get("approved", [])
-        if isinstance(approved, list):
-            return approved
-    except json.JSONDecodeError:
-        pass
-    return []
+    
+    result = json.loads(response.choices[0].message.content)
+    
+    # Log rejection reasons for analysis
+    logger.info(f"Critic reviewed {result['stats']['total_reviewed']} papers")
+    logger.info(f"Acceptance rate: {result['stats']['acceptance_rate']}")
+    
+    return result
 
 def run_scribe_agent(user_topic, validated_papers):
     """Synthesizes the final research report in Markdown."""

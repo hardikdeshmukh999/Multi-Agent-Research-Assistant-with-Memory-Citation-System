@@ -14,6 +14,7 @@ __pycache__/
 
 # Local data
 research_db/
+.source_events.jsonl
 
 # OS specific
 .DS_Store

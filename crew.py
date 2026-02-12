@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Helper to load YAML
+# --- LOAD CONFIGS ---
 def load_config(file_path):
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
@@ -15,17 +15,17 @@ def load_config(file_path):
 agents_config = load_config('agents.yaml')
 tasks_config = load_config('tasks.yaml')
 
-# --- DEFINING THE OPENAI MODELS ---
-# 1. The "Budget" Brain (Librarian & Critic) - gpt-4o-mini
+# --- LLM DEFINITIONS ---
+# Librarian & Critic: Fast & Cheap
 mini_llm = LLM(model="openai/gpt-4o-mini")
 
-# 2. The "Genius" Brain (Scribe) - gpt-4o
+# Scribe: Smart & Professional
 smart_llm = LLM(model="openai/gpt-4o")
 
 # --- AGENTS ---
 librarian = Agent(
     config=agents_config['librarian'],
-    tools=[search_openalex],
+    tools=[search_openalex],  # Librarian HAS the tool
     llm=mini_llm,
     verbose=True,
     allow_delegation=False
@@ -46,6 +46,7 @@ scribe = Agent(
 )
 
 # --- TASKS ---
+# We use 'context' to pass data from one task to the next
 research_task = Task(
     config=tasks_config['research_task'],
     agent=librarian
@@ -54,30 +55,53 @@ research_task = Task(
 review_task = Task(
     config=tasks_config['review_task'],
     agent=critic,
-    context=[research_task]
+    context=[research_task]  # Critic reviews Librarian's work
 )
 
 synthesis_task = Task(
     config=tasks_config['synthesis_task'],
     agent=scribe,
-    context=[review_task],
+    context=[review_task],  # Scribe writes based on Critic's review
     output_file='final_research_report.md'
 )
 
-# --- CREW ---
-# Change from Process.sequential to Process.hierarchical
+# --- CREW (Sequential) ---
 research_crew = Crew(
     agents=[librarian, critic, scribe],
     tasks=[research_task, review_task, synthesis_task],
-    process=Process.hierarchical, # <--- The agent now manages its own hops
-    manager_llm=smart_llm,        # GPT-4o acts as the "Project Manager"
+    process=Process.sequential,  # Sequential execution
     verbose=True
 )
-def run_crew(topic):
-    print(f"🚀 Starting the '{topic}' Research Crew...")
-    result = research_crew.kickoff(inputs={'topic': topic})
-    return result
 
+# --- MAIN FUNCTION ---
+def run_crew(topic):
+    """
+    Runs the research crew for a given topic.
+    Returns the final report as a string.
+    """
+    print(f"🚀 Starting Sequential Research on: {topic}")
+    
+    try:
+        # Kickoff the crew with the topic
+        result = research_crew.kickoff(inputs={'topic': topic})
+        
+        # CrewAI returns a CrewOutput object, convert to string
+        final_output = str(result)
+        
+        print("✅ Research completed successfully!")
+        return final_output
+        
+    except Exception as e:
+        error_msg = f"❌ Error during research: {str(e)}"
+        print(error_msg)
+        return error_msg
+
+# --- TESTING ---
 if __name__ == "__main__":
-    # Test run
-    run_crew("Future of AI Agents 2026")
+    # Only runs when you execute this file directly
+    test_topic = "AI Agents in Software Engineering"
+    result = run_crew(test_topic)
+    print("\n" + "="*50)
+    print("FINAL RESULT:")
+    print("="*50)
+    print(result)

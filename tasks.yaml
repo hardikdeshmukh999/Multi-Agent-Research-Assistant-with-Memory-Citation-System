@@ -1,17 +1,61 @@
 # tasks.yaml
 research_task:
   description: >
-    Search for papers related to {topic}. Use the local memory first, 
-    then use the OpenAlex tool if needed.
+    Use the OpenAlex Search tool to find papers about {topic}.
+    
+    MANDATORY STEPS:
+    1. Call the "OpenAlex Search" tool with the EXACT topic "{topic}" as provided — do NOT rewrite, paraphrase, or modify the query. Pass it as-is.
+    2. Wait for results from the tool
+    3. If tool returns papers, list them with title, year, link
+    4. If tool returns "No papers found", report that honestly
+    
+    DO NOT proceed without calling the tool.
+    DO NOT generate fake papers.
+  
   expected_output: >
-    A list of at least 5 relevant paper titles and their publication years.
+    A list of REAL papers from OpenAlex with:
+    - Title (from tool)
+    - Year (from tool)
+    - Author (from tool)
+    - Link (from tool)
+    - Abstract (from tool when from API; from abstract_inverted_index). If from Memory, Abstract may be "(not provided)".
+    - Source: "OpenAlex" or "Memory"
+    
+    If no papers found, output: "No papers found for this topic."
+  
   agent: librarian
 
 review_task:
   description: >
-    Review the list provided by the librarian. Check for relevance to {topic}.
+    You are the Critic. Your job is to review every paper the Librarian provided and produce a clear, structured approval list for the Scribe.
+    
+    The search query used for this research was: "{topic}". Use it to judge relevance.
+    
+    MANDATORY STEPS (do them in order):
+    
+    1. LIST EACH PAPER
+       - Go through the Librarian's output one by one. For each paper, note: Title, Year, Author, Link, and Abstract (when provided).
+    
+    2. VALIDATE EACH PAPER (Abstract is PRIMARY over Title)
+       For each paper, check:
+       - LINK: Does it have a valid Link (DOI or OpenAlex URL)? If missing or invalid → REJECT.
+       - SOURCE: Is the paper in the Librarian's list (not made up)? If not in the list → REJECT.
+       - RELEVANCE (Abstract has priority over Title):
+         * When Abstract is provided (not "(not provided)"): The abstract is the PRIMARY source. If the abstract clearly relates to the query (same domain, key terms, research question) → ACCEPT. If the abstract does NOT relate to the query → REJECT. Do NOT reject based on title alone when the abstract supports relevance.
+         * When Abstract is "(not provided)" (e.g. from Memory): Use Title only as fallback; be slightly more lenient but reject clearly off-topic papers.
+    
+    3. DECIDE
+       - ACCEPT: Valid link, in Librarian's list, and (when abstract present) abstract supports relevance. Abstract outweighs title.
+       - REJECT: Missing link, not in list, or (when abstract present) abstract does not support relevance.
+    
+    4. OUTPUT FORMAT
+       - First, a short summary: "Reviewed N papers. Approved M; rejected K."
+       - Then a numbered list of APPROVED papers only, each line: Title | Author | Year | Link
+       - Do NOT include rejected papers in the final list.
+    
+    DO NOT approve any paper without a link. DO NOT add papers that were not in the Librarian's output. When abstract is present, use it to check query relevance.
   expected_output: >
-    A filtered list of papers that pass the quality check.
+    A short review summary (counts of reviewed / approved / rejected) followed by a numbered list of APPROVED papers only, each with Title, Author, Year, Link. Relevance must be verified using the Abstract (from abstract_inverted_index when from API) against the search query; no fake or unlinked papers.
   agent: critic
 
 synthesis_task:
@@ -24,4 +68,5 @@ synthesis_task:
     2. suggest direct answer to the topic in bullets points briefly.
     3. References (List of original papers titles, authors, and publication years with their clickable Links) tabular format.
     4. Comparison of the papers with the topic, and how much they are related to the topic in tabular format.
+    If data is missing, leave the row blank or say 'N/A'.
   agent: scribe
