@@ -1,27 +1,27 @@
 # tasks.yaml
 research_task:
   description: >
-    Use the OpenAlex Search tool to find papers about {topic}.
+    Conduct a comprehensive search for papers on: {topic}.
     
-    MANDATORY STEPS:
-    1. Call the "OpenAlex Search" tool with the EXACT topic "{topic}" as provided — do NOT rewrite, paraphrase, or modify the query. Pass it as-is.
-    2. Wait for results from the tool
-    3. If tool returns papers, list them with title, year, link
-    4. If tool returns "No papers found", report that honestly
+    MANDATORY EXECUTION PLAN:
+    1. ANALYZE the topic to identify core entities (Models, Methods, Domains).
+    2. REFINE the query by removing stop words (e.g., remove "using", "application of", "based on").
+       - Example Input: "Predicting mortality rate using AI"
+       - Refined Search: "Predicting mortality rate AI"
+    3. CALL "OpenAlex Search" with this optimized query string.
+    4. If results are poor, try a broader variation (e.g., remove specific model names).
+    5. Compile the valid results found.
     
     DO NOT proceed without calling the tool.
-    DO NOT generate fake papers.
   
   expected_output: >
-    A list of REAL papers from OpenAlex with:
-    - Title (from tool)
-    - Year (from tool)
-    - Author (from tool)
-    - Link (from tool)
-    - Abstract (from tool when from API; from abstract_inverted_index). If from Memory, Abstract may be "(not provided)".
-    - Source: "OpenAlex" or "Memory"
-    
-    If no papers found, output: "No papers found for this topic."
+    A list of REAL papers fetched from OpenAlex. Each entry must have:
+    - Title
+    - Year
+    - Author
+    - Link (DOI/URL)
+    - Abstract
+    - Source ("OpenAlex" or "Memory")
   
   agent: librarian
 

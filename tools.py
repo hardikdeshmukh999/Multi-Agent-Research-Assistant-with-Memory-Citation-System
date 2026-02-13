@@ -26,15 +26,27 @@ def abstract_from_inverted_index(abstract_inverted_index):
 @tool("OpenAlex Search")
 def search_openalex(query: str):
     """
-    Academic Search Tool.
-    1. Checks local ChromaDB first (RAG).
-    2. Fallback: Hits OpenAlex API.
-    3. Saves new findings to memory.
+    Academic Search Tool. 
+    Input: A space-separated string of keywords (e.g. "transfer learning xception").
+    Avoids natural language stop words like "using", "for", "with".
     """
-    append_event(["tool_called", "search_openalex", query])  # Debug: confirms tool ran
+    # 1. WORLD-CLASS CLEANING (The "Safety Net")
+    # Even if the agent sends "using xception", we strip it here just in case.
+    stop_words = [" using ", " with ", " for ", " in ", " the ", " an ", " on ", " based on ", " approach "]
+    clean_query = query
+    for word in stop_words:
+        # Case-insensitive replacement
+        clean_query = clean_query.replace(word, " ").replace(word.upper(), " ").replace(word.title(), " ")
+    
+    # Remove double spaces created by replacement
+    search_query = " ".join(clean_query.split())
+
+    append_event(["tool_called", "search_openalex", search_query])
+    
     print("=" * 60)
     print("🔧 TOOL CALLED: search_openalex")
-    print(f"🔧 QUERY: {query}")
+    print(f"📥 RAW INPUT: {query}")
+    print(f"✨ REFINED QUERY: {search_query}") # Logs the "Magic" to the user
     print("=" * 60)
     # Use query exactly as provided — do not rewrite or modify
     search_query = query.strip() if query else ""
