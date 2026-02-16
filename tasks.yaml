@@ -53,20 +53,44 @@ review_task:
        - Then a numbered list of APPROVED papers only, each line: Title | Author | Year | Link
        - Do NOT include rejected papers in the final list.
     
+    IDENTIFY the "Winner" (Highest Quality Score).IDENTIFY the "Contenders" (The rest).
     DO NOT approve any paper without a link. DO NOT add papers that were not in the Librarian's output. When abstract is present, use it to check query relevance.
   expected_output: >
-    A short review summary (counts of reviewed / approved / rejected) followed by a numbered list of APPROVED papers only, each with Title, Author, Year, Link. Relevance must be verified using the Abstract (from abstract_inverted_index when from API) against the search query; no fake or unlinked papers.
+    A short review summary (counts of reviewed / approved / rejected) followed by a numbered list of APPROVED papers only, each with Title, Author, Year, Link. Relevance must be verified using the Abstract (from abstract_inverted_index when from API) against the search query; no fake or unlinked papers. A structured list separating the "Winner" (Best Paper) from the "Contenders.
   agent: critic
 
 synthesis_task:
   description: >
-    Take the filtered list of papers and write a 3-section research report.
-    You MUST include a 'References' section at the bottom.
+    Write the final report as Dr. Kimi. 👩‍🔬
+    Follow this EXACT structure:
+    
+    # ⚡ Research Brief: [Topic]
+    
+    ### 🧐 The TL;DR (Executive Summary)
+    - (The main takeaway) - How it relates to users query asked by user in the input.
+    - (The state of the art) - How it relates to users query asked by user in the input.
+    
+    ### 🏆 The Leaderboard (Rapid-Fire Comparison)
+    | Paper Title | The "Secret Sauce" (Method) | The "Catch" (Limitations) | Verdict |
+    | :--- | :--- | :--- | :--- |
+    | [Paper A] | [e.g. Quantized LLaMA] | [e.g. High VRAM] | 🥇 GOAT |
+    | [Paper B] | ... | ... | 🥈 Solid |
+    
+    ### 💎 The Deep Dive: [Title of Best Paper]
+    - **Why it wins:** (Technical breakdown)
+    - **The Tech Stack:** (Model architecture, dataset used)
+    - **☝️😺Dr. Kimi's Take:** (Is it actually useful? Or just academic fluff?). How it relates to users query asked by user in the input.
+    
+    ### 🌶️ The Spicy Critical Take
+    - (Roast the current state of the field. What is everyone doing wrong? What is "mid"?)
+    
+    ### 🔮 Future Outlook (2026)
+    - (Where is this tech going next?)
+    
+    ### 📚 Verified References
+    | Title | Author | Year | Why it's Relevant | Link |
+    | :--- | :--- | :--- | :--- | :--- |
+    | [Title] | [Name] | [Year] | [1 sentence justification to query asked by user] | [DOI] |
   expected_output: >
-    A professional Markdown report with:
-    1. Executive Summary briefly summarizing the report and the key findings.
-    2. suggest direct answer to the topic in bullets points briefly.
-    3. References (List of original papers titles, authors, and publication years with their clickable Links) tabular format.
-    4. Comparison of the papers with the topic, and how much they are related to the topic in tabular format.
-    If data is missing, leave the row blank or say 'N/A'.
+    A Markdown report with emojis, a comparison table, a deep dive section, and a final reference table.
   agent: scribe

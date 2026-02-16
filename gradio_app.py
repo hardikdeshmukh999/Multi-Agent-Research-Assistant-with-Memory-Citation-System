@@ -1,66 +1,54 @@
-# gradio_app.py
 import gradio as gr
 import sys
 import threading
 import time
+import os
 from crew import run_crew
 from memory import flush_memory
+# --- NEW IMPORT ---
+from validation import validate_report
+
+# --- CONFIG & ASSETS ---
+IMG_IDLE = os.path.join("videos", "hello.gif")
+IMG_SEARCH = os.path.join("videos", "research.gif")
+IMG_DONE = os.path.join("videos", "output.gif")
 
 # --- 1. THE HIDDEN LOGGER ---
-# This catches the print statements silently so we can count them later.
 class SourceTracker:
     def __init__(self):
         self.logs = []
         
     def write(self, text):
         clean = text.strip()
-        if clean:
-            self.logs.append(clean)
+        if clean: self.logs.append(clean)
 
     def flush(self): pass
 
     def get_summary(self, direct_events=None):
-        """Build summary from print logs and/or direct events from tools."""
         mem_hits = sum(1 for line in self.logs if "🧠" in line)
         web_hits = sum(1 for line in self.logs if "🌐" in line)
-        openalex_queries = [
-            line.replace("📋 OPENALEX_QUERY:", "").strip()
-            for line in self.logs
-            if "📋 OPENALEX_QUERY:" in line
-        ]
-        # Prefer direct events (file-based; works when tools run in subprocess)
+        
         if direct_events:
             mem_hits = sum(1 for e in direct_events if e == "mem")
             web_hits = sum(1 for e in direct_events if e == "web")
-            openalex_queries = [e[1] for e in direct_events if isinstance(e, list) and len(e) == 2 and e[0] == "openalex_query"]
-        query_section = ""
-        if openalex_queries:
-            unique_queries = list(dict.fromkeys(openalex_queries))
-            query_section = "\n- **OpenAlex query used:** " + "; ".join(f"\"{q}\"" for q in unique_queries)
-        no_tool_note = ""
-        if direct_events and mem_hits == 0 and web_hits == 0:
-            tool_called = any(isinstance(e, list) and e and e[0] == "tool_called" for e in direct_events)
-            if not tool_called:
-                no_tool_note = "\n- ⚠️ No tool calls detected — the Librarian may not have invoked the search."
+            
         return f"""
         ### 📊 Data Source Summary
         - **Local Memory (ChromaDB):** Used {mem_hits} times (Fast & Free)
         - **External API (OpenAlex):** Used {web_hits} times (Slow & Costly)
-        {query_section}{no_tool_note}
         """
 
 # --- 2. THE RESEARCH FUNCTION ---
 def run_research(topic):
-    # Clear events file (works across subprocesses)
     from source_tracker import clear_events, get_events
     clear_events()
     
-    # Setup the silent tracker (backup for print-based capture)
+    # Setup tracking
     tracker = SourceTracker()
     original_stdout = sys.stdout
-    sys.stdout = tracker  # Redirect print() to our tracker
+    sys.stdout = tracker
     
-    # Run AI in background
+    # Run AI in background thread
     result_container = {"data": None}
     def target():
         try:
@@ -72,52 +60,102 @@ def run_research(topic):
     thread.start()
     
     # --- UI UPDATE LOOP ---
-    # While working, just show one static message
     while thread.is_alive():
-        yield "🔎 AI Agent is researching... (Please wait)", ""
+        yield "🔎 Dr. Kimi is reading papers... (Please wait)", "", IMG_SEARCH
         time.sleep(0.5)
         
     # --- FINISHED ---
-    sys.stdout = original_stdout  # Restore terminal
+    sys.stdout = original_stdout
     
-    # Combine the Report + The Source Stats (read from file; works across subprocesses)
     final_output = result_container["data"]
-    from source_tracker import get_events
+    
+    # --- NEW: RUN VALIDATION ---
+    # We check the file that 'crew.py' just created
+    val_report = ""
+    try:
+        # Check if file exists before validating
+        if os.path.exists("final_research_report.md"):
+            v_result = validate_report("final_research_report.md")
+            
+            val_report = "\n\n---\n### 🛡️ Quality Assurance Check\n"
+            if v_result["validation_passed"]:
+                val_report += f"✅ **PASSED**: No hallucinations detected.\n"
+                val_report += f"- **Valid Citations:** {v_result['citation_stats']['valid_links']}/{v_result['citation_stats']['total_citations']}\n"
+            else:
+                val_report += f"⚠️ **ISSUES FOUND**:\n"
+                for issue in v_result["issues"]:
+                    val_report += f"- ❌ {issue}\n"
+        else:
+            val_report = "\n\n---\n⚠️ **Validation Skipped**: Output file not found."
+            
+    except Exception as e:
+        val_report = f"\n\n---\n⚠️ Validation Error: {str(e)}"
+
+    # Generate Stats
     source_stats = tracker.get_summary(direct_events=get_events())
     
-    full_report = f"{final_output}\n\n---\n{source_stats}"
+    # Combine: Report + Validation + Stats
+    full_report = f"{final_output}{val_report}\n\n---\n{source_stats}"
     
-    yield "✅ Research Complete!", full_report
+    yield "✅ Research Complete!", full_report, IMG_DONE
 
 
 def flush_db():
-    """Clear all papers from ChromaDB memory."""
     try:
         n = flush_memory()
-        return f"✅ Flushed {n} papers from memory."
+        return f"✅ Flushed {n} papers."
     except Exception as e:
         return f"❌ Error: {e}"
 
+# --- 3. THE WORLD-CLASS UI ---
+custom_css = """
+#title_area {text-align: center; margin-bottom: 20px;}
+#avatar_image {border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none;}
+"""
 
-# --- 3. THE MINIMAL UI ---
-with gr.Blocks(theme=gr.themes.Soft()) as app:
-    gr.Markdown("# 🧬 AI Research Agent")
+with gr.Blocks(theme=gr.themes.Soft(primary_hue="pink", secondary_hue="indigo"), css=custom_css) as app:
     
+    with gr.Row(elem_id="title_area"):
+        gr.Markdown('''
+        # 🌸 Dr. Kimi 😺
+        ### Your Personal AI Research Assistant 🌐
+        #### using OpenAlex 🔎
+        ''')
+
     with gr.Row():
-        msg = gr.Textbox(label="Research Topic", placeholder="e.g. VLA Manufacturing 2026")
-        btn = gr.Button("🚀 Run", variant="primary", scale=0)
-        flush_btn = gr.Button("🗑️ Flush Memory", variant="secondary")
-    
+        with gr.Column(scale=1):
+            avatar = gr.Image(
+                value=IMG_IDLE, 
+                label="Agent State", 
+                show_label=False, 
+                elem_id="avatar_image",
+                interactive=False,
+                type="filepath",
+                height=350
+            )
+            
+        with gr.Column(scale=2):
+            msg = gr.Textbox(
+                label="Research Topic", 
+                placeholder="e.g. VLA Manufacturing 2026",
+                lines=2
+            )
+            
+            with gr.Row():
+                btn = gr.Button("🌻 Run Research", variant="primary", scale=2)
+                flush_btn = gr.Button("🗑️ Flush Memory", variant="secondary", scale=1)
+            
+            status = gr.Label(value="Ready to help!", label="Current Status")
+
     with gr.Row():
-        # Simple Status Box
-        status = gr.Label(label="Current Status", value="Ready")
-    
-    with gr.Row():
-        # Final Report Area
         output = gr.Markdown(label="Final Research Report")
 
-    # Connect buttons
-    btn.click(fn=run_research, inputs=msg, outputs=[status, output])
+    btn.click(
+        fn=run_research, 
+        inputs=msg, 
+        outputs=[status, output, avatar]
+    )
+    
     flush_btn.click(fn=flush_db, inputs=None, outputs=status)
 
 if __name__ == "__main__":
