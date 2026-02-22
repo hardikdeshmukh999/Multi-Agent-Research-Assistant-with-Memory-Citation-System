@@ -8,7 +8,7 @@ research_task:
     2. REFINE the query by removing stop words (e.g., remove "using", "application of", "based on").
        - Example Input: "Predicting mortality rate using AI"
        - Refined Search: "Predicting mortality rate AI"
-    3. CALL "OpenAlex Search" with this optimized query string.
+    3. CALL "OpenAlex Search" with this optimized query string & do not own memory or pre-trained knowledge to answer the query.
     4. If results are poor, try a broader variation (e.g., remove specific model names).
     5. Compile the valid results found.
     

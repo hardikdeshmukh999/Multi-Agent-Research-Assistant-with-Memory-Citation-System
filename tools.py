@@ -54,7 +54,7 @@ def search_openalex(query: str):
     # --- PHASE 1: CHECK LOCAL MEMORY (RAG) ---
     try:
         # Search for top 3 matching papers in our database
-        mem_results = search_memory(search_query, n_results=3)
+        mem_results = search_memory(search_query, n_results=25)
         
         # Check if we actually found documents
         if mem_results and mem_results.get('documents') and len(mem_results['documents'][0]) > 0:
@@ -173,11 +173,18 @@ def search_openalex(query: str):
             "quality_score": round(quality_score, 2),
         })
         # Sort by quality score
-    papers_with_scores.sort(key=lambda x: x['quality_score'], reverse=True)
-    
-    # Save to memory
-    if papers_with_scores:
-        save_papers_to_memory(papers_with_scores, query)
+        # 5. SORT & TRUNCATE (keep top 10)
+        papers_with_scores.sort(key=lambda x: x['quality_score'], reverse=True)
+        top_papers = papers_with_scores[:10]
+        
+        # --- NEW STEP: FILTER OUT PAPERS WITHOUT ABSTRACTS BEFORE SAVING ---
+        high_quality_papers_for_memory = [
+            p for p in top_papers if p['abstract'] and p['abstract'] != "(not provided)"
+        ]
+        
+        # 6. SAVE TO MEMORY
+        if high_quality_papers_for_memory:
+            save_papers_to_memory(high_quality_papers_for_memory, search_query)
     
     # Return structured JSON (not strings)
     return {
